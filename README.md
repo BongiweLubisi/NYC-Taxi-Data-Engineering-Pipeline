@@ -35,17 +35,17 @@ Raw NYC taxi data (Parquet files) is ingested into the Lakehouse, which serves a
 
 ### 🔷Staging Layer (Warehouse – STG Schema)
 
-Data is loaded from the Lakehouse into staging tables within the data warehouse. This layer is used for controlled data processing, including validation and cleansing.
+The staging layer is populated via the staging pipeline (PL_STG_data_processing), which:
+- Copies data from the Lakehouse (landing) into staging tables
+- Executes a stored procedure within the pipeline to remove outliers and Ensure data consistency (e.g., correct monthly alignment)
 
-A stored procedure is applied to:
-- Remove outliers 
-- Ensure data consistency (e.g., aligning records to the correct month)
-
-This layer prepares the data for downstream transformations
+This layer is used for controlled data preparation before transformation.
 
 ### 🔷 Transformation Layer (Dataflow Gen2)
 
-Dataflow Gen2 is used to perform transformations using Power Query. This includes:
+Data transformation is executed as part of the presentation pipeline (PL_PRES_processing_NYC_taxi)
+
+Dataflow Gen2 is used to perform transformations on the staging schema using Power Query. This includes:
 - Handling missing values  
 - Standardizing formats  
 - Filtering invalid records
@@ -53,7 +53,20 @@ Dataflow Gen2 is used to perform transformations using Power Query. This include
 
 This step ensures the data is structured and analysis-ready.
 
-### 🔷 Presentation Layer (Warehouse – DBO Schema)
+### 🔷Presentation Layer (Warehouse – DBO Schema)
 
-Cleaned data is loaded into presentation tables optimized for reporting and analytics. 
+The presentation layer is also managed within the presentation pipeline, where:
+- Cleaned and transformed data is loaded from staging into presentation tables
+- Data is structured and optimized for reporting and analytics
+
+### 🔷Orchestration Layer (Master Pipeline)
+
+An orchestration pipeline (PL_Orchestrate_NYC_Taxi) coordinates the execution of all pipelines by:
+	•	Invoking the staging pipeline
+	•	Invoking the presentation pipeline
+	•	Ensuring the end-to-end workflow runs in the correct sequence
+
+### 🔷Analytics Layer (Semantic Model & Reporting)
+
+A semantic model is built on top of the presentation layer and connected to Power BI. This enables the creation of dashboards and KPIs that support business decision-making.
 
